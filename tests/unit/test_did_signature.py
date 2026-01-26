@@ -90,46 +90,60 @@ class TestSignRequest:
 class TestVerifySignature:
     """Test signature verification."""
 
-    @patch("bindu.utils.did_signature.DIDAgentExtension")
-    def test_verify_signature_valid(self, mock_did_ext_class):
+    @patch("base58.b58decode")
+    @patch("nacl.signing.VerifyKey")
+    def test_verify_signature_valid(self, mock_verify_key_class, mock_b58decode):
         """Test verifying a valid signature."""
-        mock_did_ext_class.verify_signature_with_public_key.return_value = True
+        # Mock base58 decoding to return fake bytes
+        mock_b58decode.return_value = b"fake_decoded_bytes"
+
+        # Mock the verify method to not raise an exception (valid signature)
+        mock_verify_key = mock_verify_key_class.return_value
+        mock_verify_key.verify.return_value = None  # No exception = valid
 
         body = {"test": "data"}
         signature = "valid_signature"
         did = "did:key:test"
         timestamp = int(time.time())
-        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
 
         result = verify_signature(body, signature, did, timestamp, public_key)
 
         assert result is True
 
-    @patch("bindu.utils.did_signature.DIDAgentExtension")
-    def test_verify_signature_expired_timestamp(self, mock_did_ext_class):
+    def test_verify_signature_expired_timestamp(self):
         """Test that expired timestamps are rejected."""
         body = {"test": "data"}
         signature = "signature"
         did = "did:key:test"
         timestamp = int(time.time()) - 600  # 10 minutes ago
-        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
 
+        # Should fail due to timestamp, not signature verification
         result = verify_signature(
             body, signature, did, timestamp, public_key, max_age_seconds=300
         )
 
         assert result is False
 
-    @patch("bindu.utils.did_signature.DIDAgentExtension")
-    def test_verify_signature_invalid(self, mock_did_ext_class):
+    @patch("base58.b58decode")
+    @patch("nacl.signing.VerifyKey")
+    def test_verify_signature_invalid(self, mock_verify_key_class, mock_b58decode):
         """Test verifying an invalid signature."""
-        mock_did_ext_class.verify_signature_with_public_key.return_value = False
+        from nacl.exceptions import BadSignatureError
+
+        # Mock base58 decoding to return fake bytes
+        mock_b58decode.return_value = b"fake_decoded_bytes"
+
+        # Mock the verify method to raise BadSignatureError (invalid signature)
+        mock_verify_key = mock_verify_key_class.return_value
+        mock_verify_key.verify.side_effect = BadSignatureError("Invalid signature")
 
         body = {"test": "data"}
         signature = "invalid_signature"
         did = "did:key:test"
         timestamp = int(time.time())
-        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        public_key = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
 
         result = verify_signature(body, signature, did, timestamp, public_key)
 
@@ -252,13 +266,15 @@ class TestGetPublicKeyFromHydra:
         mock_hydra.get_oauth_client.return_value = {
             "client_id": "did:key:test",
             "metadata": {
-                "public_key": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+                "public_key": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
             },
         }
 
         public_key = await get_public_key_from_hydra("did:key:test", mock_hydra)
 
-        assert public_key == "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        assert (
+            public_key == "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        )  # pragma: allowlist secret
 
     async def test_get_public_key_not_found(self):
         """Test when client is not found."""

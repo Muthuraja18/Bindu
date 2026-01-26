@@ -16,8 +16,10 @@ from bindu.utils.did_signature import sign_request
 def mock_did_extension():
     """Create a mock DID extension."""
     mock_ext = MagicMock()
-    mock_ext.did = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
-    mock_ext.public_key_multibase = "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+    mock_ext.did = "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
+    mock_ext.public_key_base58 = (
+        "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"  # pragma: allowlist secret
+    )
     mock_ext.sign_message.return_value = "mock_signature_abc123"
     return mock_ext
 
@@ -75,7 +77,7 @@ class TestHybridAuthenticationFlow:
                 return_value={
                     "client_id": mock_did_extension.did,
                     "metadata": {
-                        "public_key": mock_did_extension.public_key_multibase,
+                        "public_key": mock_did_extension.public_key_base58,
                         "hybrid_auth": True,
                     },
                 },
@@ -92,13 +94,15 @@ class TestHybridAuthenticationFlow:
                 }
 
                 # Mock signature verification to return True
-                with patch(
-                    "bindu.utils.did_signature.DIDExtension.verify_signature_with_public_key",
-                    return_value=True,
-                ):
-                    # Execute
-                    call_next = AsyncMock(return_value=JSONResponse({"success": True}))
-                    response = await middleware.dispatch(mock_request, call_next)
+                with patch("base58.b58decode") as mock_b58:
+                    mock_b58.return_value = b"fake_decoded_bytes"
+                    with patch("nacl.signing.VerifyKey") as mock_verify_key:
+                        mock_verify_key.return_value.verify.return_value = None
+                        # Execute
+                        call_next = AsyncMock(
+                            return_value=JSONResponse({"success": True})
+                        )
+                        response = await middleware.dispatch(mock_request, call_next)
 
                     # Verify
                     assert response.status_code == 200
@@ -137,7 +141,7 @@ class TestHybridAuthenticationFlow:
                 return_value={
                     "client_id": mock_did_extension.did,
                     "metadata": {
-                        "public_key": mock_did_extension.public_key_multibase,
+                        "public_key": mock_did_extension.public_key_base58,
                     },
                 },
             ):
@@ -151,13 +155,17 @@ class TestHybridAuthenticationFlow:
                     **signature_headers,
                 }
 
-                # Mock signature verification to return False
-                with patch(
-                    "bindu.utils.did_signature.DIDExtension.verify_signature_with_public_key",
-                    return_value=False,
-                ):
-                    call_next = AsyncMock()
-                    response = await middleware.dispatch(mock_request, call_next)
+                # Mock signature verification to raise BadSignatureError
+                from nacl.exceptions import BadSignatureError
+
+                with patch("base58.b58decode") as mock_b58:
+                    mock_b58.return_value = b"fake_decoded_bytes"
+                    with patch("nacl.signing.VerifyKey") as mock_verify_key:
+                        mock_verify_key.return_value.verify.side_effect = (
+                            BadSignatureError("Invalid")
+                        )
+                        call_next = AsyncMock()
+                        response = await middleware.dispatch(mock_request, call_next)
 
                     # Verify rejection
                     assert response.status_code == 403
@@ -219,7 +227,7 @@ class TestHybridAuthenticationFlow:
                 return_value={
                     "client_id": mock_did_extension.did,
                     "metadata": {
-                        "public_key": mock_did_extension.public_key_multibase,
+                        "public_key": mock_did_extension.public_key_base58,
                     },
                 },
             ):
@@ -320,7 +328,7 @@ class TestHybridAuthClient:
 
         mock_credentials = MagicMock(
             client_id=mock_did_extension.did,
-            client_secret="test_secret",
+            client_secret="test_secret",  # pragma: allowlist secret
             scopes=["agent:read"],
         )
 
@@ -330,14 +338,33 @@ class TestHybridAuthClient:
         ):
             with patch(
                 "bindu.utils.hybrid_auth_client.get_client_credentials_token",
-                return_value={"access_token": "test_token", "expires_in": 3600},
+                new=AsyncMock(
+                    return_value={"access_token": "test_token", "expires_in": 3600}
+                ),
             ):
-                with patch("aiohttp.ClientSession") as mock_session:
+                with patch(
+                    "bindu.utils.hybrid_auth_client.aiohttp.ClientSession"
+                ) as mock_session_class:
                     mock_response = AsyncMock()
                     mock_response.status = 200
                     mock_response.json = AsyncMock(return_value={"result": "success"})
 
-                    mock_session.return_value.__aenter__.return_value.post.return_value.__aenter__.return_value = mock_response
+                    # Create mock session instance
+                    mock_session_instance = MagicMock()
+                    mock_session_instance.__aenter__ = AsyncMock(
+                        return_value=mock_session_instance
+                    )
+                    mock_session_instance.__aexit__ = AsyncMock(return_value=None)
+
+                    # Mock the post method - it returns a context manager
+                    mock_post_context = MagicMock()
+                    mock_post_context.__aenter__ = AsyncMock(return_value=mock_response)
+                    mock_post_context.__aexit__ = AsyncMock(return_value=None)
+                    mock_session_instance.post = MagicMock(
+                        return_value=mock_post_context
+                    )
+
+                    mock_session_class.return_value = mock_session_instance
 
                     client = HybridAuthClient(
                         agent_id="test-agent",
@@ -391,7 +418,7 @@ class TestAgentRegistrationWithDID:
                     with patch(
                         "bindu.auth.hydra_registration.save_agent_credentials"
                     ) as mock_save:
-                        credentials = await register_agent_in_hydra(
+                        await register_agent_in_hydra(
                             agent_id="test-agent",
                             agent_name="Test Agent",
                             agent_url="http://localhost:3773",
@@ -408,7 +435,7 @@ class TestAgentRegistrationWithDID:
                         assert client_data["metadata"]["did"] == mock_did_extension.did
                         assert (
                             client_data["metadata"]["public_key"]
-                            == mock_did_extension.public_key_multibase
+                            == mock_did_extension.public_key_base58
                         )
                         assert client_data["metadata"]["hybrid_auth"] is True
 

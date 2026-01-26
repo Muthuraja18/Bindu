@@ -232,7 +232,7 @@ async def get_token_endpoint(request: Request) -> JSONResponse:
     Request body:
     {
         "client_id": "my-client",
-        "client_secret": "secret",
+        "client_secret": "secret",  # pragma: allowlist secret
         "grant_type": "client_credentials",
         "scope": "agent:read agent:write"
     }

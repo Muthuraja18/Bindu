@@ -1,6 +1,5 @@
-"""
-ZK-Policy Agent Example
------------------------
+"""ZK-Policy Agent Example.
+
 This agent demonstrates how to implement a specialized security agent within the Bindu framework.
 It simulates a Zero-Knowledge Proof (ZKP) workflow where an agent verifies data compliance
 without revealing the sensitive data itself.
@@ -15,8 +14,7 @@ from bindu.penguin.bindufy import bindufy
 
 
 def generate_mock_zk_proof(content: str) -> dict:
-    """
-    Simulates the generation of a ZK-SNARK proof.
+    """Simulate the generation of a ZK-SNARK proof.
 
     In a production version (like ZK-Sentinel), this would utilize
     circom/snarkjs or a Python binding for a proving system.

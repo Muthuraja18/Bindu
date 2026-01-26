@@ -133,7 +133,7 @@ Agent A                    Hydra                     Agent B
 POST https://hydra-admin.getbindu.com/admin/clients
 {
   "client_id": "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
-  "client_secret": "generated-secret",
+  "client_secret": "your_client_secret"  # pragma: allowlist secret,
   "grant_types": ["client_credentials"],
   "scope": "agent:read agent:write"
 }
@@ -248,7 +248,7 @@ import json
 # Get OAuth token
 token_response = await get_client_credentials_token(
     client_id="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
-    client_secret="your-secret",
+    client_secret="your-secret",  # pragma: allowlist secret
     scope="agent:read agent:write"
 )
 
@@ -314,7 +314,7 @@ from bindu.utils.token_utils import get_client_credentials_token
 # For backward compatibility, you can still get tokens without DID signatures
 token_response = await get_client_credentials_token(
     client_id="did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
-    client_secret="your-secret",
+    client_secret="your-secret",  # pragma: allowlist secret
     scope="agent:read agent:write"
 )
 
@@ -563,7 +563,7 @@ Define minimal scopes for each client:
 
    # Should see:
    # "metadata": {
-   #   "public_key": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
+   #   "public_key": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",  # pragma: allowlist secret
    #   "hybrid_auth": true
    # }
    ```
@@ -583,7 +583,7 @@ Define minimal scopes for each client:
    # Ensure DID extension can access private key
    did_ext = DIDExtension(pki_dir=Path(".bindu/pki"))
    print(f"DID: {did_ext.did}")
-   print(f"Public Key: {did_ext.public_key_multibase}")
+   print(f"Public Key: {did_ext.public_key_base58}")
    ```
 
 ### Backward Compatibility Issues

@@ -35,7 +35,7 @@ async def test_oauth_client_lifecycle():
 
     client_data = {
         "client_id": "test-client-123",
-        "client_secret": "test-secret-456",
+        "client_secret": "test-secret-456",  # pragma: allowlist secret
         "client_name": "Test Client",
         "grant_types": ["client_credentials"],
         "scope": "agent:read agent:write",
@@ -129,7 +129,7 @@ async def test_client_credentials_token_flow():
 
     # Use test client credentials
     client_id = "test-client"
-    client_secret = "test-secret"
+    client_secret = "test-secret"  # pragma: allowlist secret
 
     token_response = await get_client_credentials_token(
         client_id=client_id,
@@ -151,7 +151,7 @@ async def test_invalid_credentials_returns_none():
 
     token_response = await get_client_credentials_token(
         client_id="invalid-client",
-        client_secret="invalid-secret",
+        client_secret="invalid-secret",  # pragma: allowlist secret
         scope="agent:read",
     )
 
@@ -168,7 +168,7 @@ async def test_token_revocation():
     # Get a token first
     token_response = await get_client_credentials_token(
         client_id="test-client",
-        client_secret="test-secret",
+        client_secret="test-secret",  # pragma: allowlist secret
     )
 
     token = token_response["access_token"]

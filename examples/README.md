@@ -76,10 +76,10 @@ HYDRA__ADMIN_URL=https://hydra-admin.getbindu.com
 HYDRA__PUBLIC_URL=https://hydra.getbindu.com
 
 # Optional: For PostgreSQL storage
-DATABASE_URL=postgresql+asyncpg://user:pass@host/db
+DATABASE_URL=postgresql+asyncpg://user:pass@host/db  # pragma: allowlist secret
 
 # Optional: For Redis scheduler
-REDIS_URL=rediss://default:pass@host:6379
+REDIS_URL=rediss://default:pass@host:6379  # pragma: allowlist secret
 ```
 
 ## Spotlight: Full-Featured Agent with Authentication
