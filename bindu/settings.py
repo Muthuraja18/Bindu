@@ -467,7 +467,7 @@ class AuthSettings(BaseSettings):
     enabled: bool = False
 
     # Authentication provider
-    provider: str = "auth0"  # Options: auth0, hydra, cognito, azure, custom
+    provider: str = "hydra"  # Options: auth0, hydra, cognito, azure, custom
 
     # Auth0 Configuration
     domain: str = ""

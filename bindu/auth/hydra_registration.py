@@ -8,7 +8,7 @@ from __future__ import annotations as _annotations
 
 import json
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -194,9 +194,9 @@ async def register_agent_in_hydra(
             key_type = None
             if did_extension:
                 try:
-                    public_key = did_extension.public_key_multibase
+                    public_key = did_extension.public_key_base58
                     key_type = "Ed25519"
-                    logger.info(f"Extracted public key from DID extension for {did}")
+                    logger.info(f"Extracted public key (base58) from DID extension for {did}")
                 except Exception as e:
                     logger.warning(f"Failed to extract public key from DID extension: {e}")
 
@@ -216,7 +216,7 @@ async def register_agent_in_hydra(
                     "public_key": public_key,
                     "key_type": key_type,
                     "verification_method": "Ed25519VerificationKey2020" if key_type else None,
-                    "registered_at": datetime.utcnow().isoformat(),
+                    "registered_at": datetime.now(timezone.utc).isoformat(),
                     "hybrid_auth": True,  # Flag for hybrid OAuth2 + DID authentication
                 },
             }
@@ -229,7 +229,7 @@ async def register_agent_in_hydra(
                 agent_id=agent_id,
                 client_id=client_id,
                 client_secret=client_secret,
-                created_at=datetime.utcnow().isoformat(),
+                created_at=datetime.now(timezone.utc).isoformat(),
                 scopes=app_settings.hydra.default_agent_scopes,
             )
 

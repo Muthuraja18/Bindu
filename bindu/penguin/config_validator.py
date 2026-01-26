@@ -255,10 +255,7 @@ class ConfigValidator:
         Raises:
             ValueError: If Hydra configuration is invalid
         """
-        # For Hydra, most config comes from environment variables or settings
-        # We just validate the provider is set correctly
-        
-        # Optional: validate admin_url and public_url if provided
+        # Validate admin_url and public_url if provided
         if "admin_url" in auth_config:
             admin_url = auth_config["admin_url"]
             if not admin_url.startswith("http://") and not admin_url.startswith("https://"):
@@ -273,6 +270,69 @@ class ConfigValidator:
                 raise ValueError(
                     f"Invalid Hydra public_url: '{public_url}'. "
                     f"Expected format: 'https://hydra.getbindu.com'"
+                )
+
+        # Validate timeout
+        if "timeout" in auth_config:
+            timeout = auth_config["timeout"]
+            if not isinstance(timeout, int) or timeout <= 0:
+                raise ValueError(
+                    f"Invalid Hydra timeout: '{timeout}'. "
+                    f"Expected positive integer (seconds)"
+                )
+
+        # Validate verify_ssl
+        if "verify_ssl" in auth_config:
+            verify_ssl = auth_config["verify_ssl"]
+            if not isinstance(verify_ssl, bool):
+                raise ValueError(
+                    f"Invalid Hydra verify_ssl: '{verify_ssl}'. "
+                    f"Expected boolean (true/false)"
+                )
+
+        # Validate max_retries
+        if "max_retries" in auth_config:
+            max_retries = auth_config["max_retries"]
+            if not isinstance(max_retries, int) or max_retries < 0:
+                raise ValueError(
+                    f"Invalid Hydra max_retries: '{max_retries}'. "
+                    f"Expected non-negative integer"
+                )
+
+        # Validate cache_ttl
+        if "cache_ttl" in auth_config:
+            cache_ttl = auth_config["cache_ttl"]
+            if not isinstance(cache_ttl, int) or cache_ttl <= 0:
+                raise ValueError(
+                    f"Invalid Hydra cache_ttl: '{cache_ttl}'. "
+                    f"Expected positive integer (seconds)"
+                )
+
+        # Validate max_cache_size
+        if "max_cache_size" in auth_config:
+            max_cache_size = auth_config["max_cache_size"]
+            if not isinstance(max_cache_size, int) or max_cache_size <= 0:
+                raise ValueError(
+                    f"Invalid Hydra max_cache_size: '{max_cache_size}'. "
+                    f"Expected positive integer"
+                )
+
+        # Validate auto_register_agents
+        if "auto_register_agents" in auth_config:
+            auto_register = auth_config["auto_register_agents"]
+            if not isinstance(auto_register, bool):
+                raise ValueError(
+                    f"Invalid Hydra auto_register_agents: '{auto_register}'. "
+                    f"Expected boolean (true/false)"
+                )
+
+        # Validate agent_client_prefix
+        if "agent_client_prefix" in auth_config:
+            prefix = auth_config["agent_client_prefix"]
+            if not isinstance(prefix, str) or not prefix:
+                raise ValueError(
+                    f"Invalid Hydra agent_client_prefix: '{prefix}'. "
+                    f"Expected non-empty string"
                 )
 
     @classmethod

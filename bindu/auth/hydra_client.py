@@ -7,6 +7,7 @@ from __future__ import annotations as _annotations
 
 import asyncio
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
 import aiohttp
 from pydantic import BaseModel
@@ -151,6 +152,10 @@ class HydraClient:
                             message="Endpoint not found",
                         )
 
+                    # Read response body before context manager closes
+                    response_data = await response.read()
+                    # Store data in response for later access
+                    response._body = response_data
                     return response
 
             except (aiohttp.ClientConnectorError, aiohttp.ServerDisconnectedError) as e:
@@ -240,8 +245,10 @@ class HydraClient:
             Client information or None if not found
         """
         try:
+            # URL-encode client_id to handle DIDs with colons and special characters
+            encoded_client_id = quote(client_id, safe='')
             response = await self._request_with_retry(
-                "GET", f"/admin/clients/{client_id}"
+                "GET", f"/admin/clients/{encoded_client_id}"
             )
 
             if response.status == 200:
@@ -297,8 +304,10 @@ class HydraClient:
             True if deleted, False if not found
         """
         try:
+            # URL-encode client_id to handle DIDs with colons and special characters
+            encoded_client_id = quote(client_id, safe='')
             response = await self._request_with_retry(
-                "DELETE", f"/admin/clients/{client_id}"
+                "DELETE", f"/admin/clients/{encoded_client_id}"
             )
 
             if response.status in (200, 204):

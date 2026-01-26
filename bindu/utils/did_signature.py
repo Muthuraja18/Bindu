@@ -195,7 +195,7 @@ async def get_public_key_from_hydra(client_did: str, hydra_client) -> Optional[s
         hydra_client: HydraClient instance
 
     Returns:
-        Public key (multibase encoded) or None
+        Public key (base58 encoded) or None
     """
     try:
         client = await hydra_client.get_oauth_client(client_did)

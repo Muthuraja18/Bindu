@@ -28,6 +28,7 @@ from bindu.penguin.manifest import create_manifest, validate_agent_function
 from bindu.settings import app_settings
 from bindu.utils import add_extension_to_capabilities
 from bindu.utils.config_loader import (
+    create_auth_config_from_env,
     create_storage_config_from_env,
     create_scheduler_config_from_env,
     create_sentry_config_from_env,
@@ -164,11 +165,6 @@ def bindufy(
 
     validated_config = ConfigValidator.validate_and_process(config)
 
-    # Update app_settings.auth based on config
-    auth_config = validated_config.get("auth")
-    if auth_config is not None:
-        update_auth_settings(auth_config)
-
     # Generate agent_id if not provided
     agent_id = validated_config.get("id", uuid4().hex)
 
@@ -177,6 +173,11 @@ def bindufy(
     storage_config = create_storage_config_from_env(validated_config)
     scheduler_config = create_scheduler_config_from_env(validated_config)
     sentry_config = create_sentry_config_from_env(validated_config)
+    auth_config = create_auth_config_from_env(validated_config)
+
+    # Update app_settings.auth based on config
+    if auth_config is not None:
+        update_auth_settings(auth_config)
 
     # Validate that this is a protocol-compliant function
     handler_name = getattr(handler, "__name__", "<unknown>")
