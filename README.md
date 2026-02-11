@@ -404,101 +404,34 @@ Output:
 
 <br/>
 
-## 🔐 Authentication
+## 🔐 [Authentication](docs/AUTHENTICATION.md)
 
 Bindu uses **Ory Hydra** OAuth2 for secure API access. Authentication is **optional** - perfect for development without auth.
 
-**Quick Setup:**
-```bash
-AUTH__ENABLED=true
-AUTH__PROVIDER=hydra
-HYDRA__ADMIN_URL=https://hydra-admin.getbindu.com
-HYDRA__PUBLIC_URL=https://hydra.getbindu.com
-```
-
-**Get Access Token:**
-```bash
-curl -X POST https://hydra.getbindu.com/oauth2/token \
-  -d "grant_type=client_credentials" \
-  -d "client_id=did:bindu:<YOUR_AGENT_DID>" \
-  -d "client_secret=<YOUR_CLIENT_SECRET>"
-```
-
-📖 **[Full Authentication Guide →](docs/AUTHENTICATION.md)**
-
 ---
 
 <br/>
 
-## 💰 Payment Integration (X402)
+## 💰 [Payment Integration (X402)](docs/PAYMENT.md)
 
 Monetize your AI agents with **X402 payment protocol** - accept USDC payments on Base blockchain before executing protected methods.
 
-**Quick Setup:**
-```python
-config = {
-    "execution_cost": {
-        "amount": "$0.0001",
-        "token": "USDC",
-        "network": "base-sepolia",  # or "base" for production
-        "pay_to_address": "0xYourWalletAddress",
-        "protected_methods": ["message/send"]
-    }
-}
-```
-
-**Payment Flow:**
-1. User initiates payment session → Gets browser URL
-2. User pays with MetaMask/Coinbase Wallet → Blockchain verification
-3. User receives payment token → Can call protected methods
-
-<img src="assets/payment-required-base.png" alt="Payment Screen" width="400" />
-
-📖 **[Full Payment Guide →](docs/PAYMENT.md)** - Wallet setup, testing, production deployment
 
 ---
 
 <br/>
 
-## 💾 PostgreSQL Storage
+## 💾 [PostgreSQL Storage](docs/STORAGE.md)
 
 Persistent storage for production deployments. **Optional** - InMemoryStorage used by default.
 
-**Quick Setup:**
-```bash
-STORAGE_TYPE=postgres
-DATABASE_URL=postgresql+asyncpg://<user>:<password>@<host>:<port>/<database>?ssl=require
-```
-
-**Features:**
-- Task history with JSONB
-- Context management
-- Automatic migrations
-- Task-first pattern support
-
-📖 **[Full Storage Guide →](docs/STORAGE.md)** - Setup, cloud providers, migrations
-
 ---
 
 <br/>
 
-## 📋 Redis Scheduler
+## 📋 [Redis Scheduler](docs/SCHEDULER.md)
 
 Distributed task scheduling for multi-worker deployments. **Optional** - InMemoryScheduler used by default.
-
-**Quick Setup:**
-```bash
-SCHEDULER_TYPE=redis
-REDIS_URL=rediss://default:<password>@<host>:<port>
-```
-
-**Features:**
-- Distributed queuing
-- Blocking operations (no polling)
-- Multi-worker support
-- High throughput
-
-📖 **[Full Scheduler Guide →](docs/SCHEDULER.md)** - Multi-worker setup, cloud Redis, monitoring
 
 ---
 
@@ -510,127 +443,39 @@ REDIS_URL=rediss://default:<password>@<host>:<port>
 
 Bindu includes a built-in Tenacity-based retry mechanism to handle transient failures gracefully across workers, storage, schedulers, and API calls. This ensures your agents remain resilient in production environments.
 
-
-### ⚙️ Default Settings
-
-If not configured, Bindu uses these defaults:
-
-| Operation Type | Max Attempts | Min Wait | Max Wait |
-| -------------- | ------------ | -------- | -------- |
-| Worker         | 3            | 1.0s     | 10.0s    |
-| Storage        | 5            | 0.5s     | 5.0s     |
-| Scheduler      | 3            | 1.0s     | 8.0s     |
-| API            | 4            | 1.0s     | 15.0s    |
-
 ---
 
 <br/>
 
-## [Sentry Integration](https://docs.getbindu.com/bindu/learn/sentry/overview)
+## [Sentry Integration](docs/OBSERVABILITY.md)
 
 > Real-time error tracking and performance monitoring for Bindu agents
 
-Sentry is a real-time error tracking and performance monitoring platform that helps you identify, diagnose, and fix issues in production. Bindu includes built-in Sentry integration to provide comprehensive observability for your AI agents.
-
-### ⚙️ Configuration
-
-<details>
-<summary><b>View configuration example</b> (click to expand)</summary>
-
-```bash
-#You can find in the env.example file
-# Sentry Error Tracking (Optional)
-# Enable error tracking and performance monitoring
-SENTRY_ENABLED=true
-SENTRY_DSN=https://<key>@<org-id>.ingest.sentry.io/<project-id>
-```
-
-Configure Sentry directly in your `bindufy()` config:
-
-```python
-config = {
-    "author": "gaurikasethi88@gmail.com",
-    "name": "echo_agent",
-    "description": "A basic echo agent for quick testing.",
-    "deployment": {"url": "http://localhost:3773", "expose": True},
-    "skills": []
-}
-
-def handler(messages):
-    # Your agent logic
-    pass
-
-bindufy(config, handler)
-```
-
-</details>
-
-### 🚀 Getting Started
-
-1. **Create Sentry Account**: Sign up at [sentry.io](https://sentry.io)
-2. **Get Your DSN**: Copy from project settings
-3. **Configure Bindu**: Add `sentry` config (see above)
-4. **Run Your Agent**: Sentry initializes automatically
-
-> 📚 See the [full Sentry documentation](https://docs.getbindu.com/bindu/learn/sentry/overview) for complete details.
+Sentry is a real-time error tracking and performance monitoring platform that helps you identify, diagnose, and fix issues in production. Bindu includes built-in Sentry integration to provide comprehensive observability for your AI agents.s
 
 ---
 
 <br/>
 
-## 🎯 Skills
+## 🎯 [Skills](docs/SKILLS.md)
 
 Reusable capabilities that agents advertise and execute. Enable intelligent task routing and orchestration.
 
-**API Endpoints:**
-```bash
-GET /agent/skills                      # List all skills
-GET /agent/skills/{skill_id}           # Get details
-GET /agent/skills/{skill_id}/documentation  # Get docs
-```
-
-📖 **[Full Skills Guide →](docs/SKILLS.md)** - Creating skills, metadata, examples
-
 ---
 
 <br/>
 
-## 🤝 Negotiation
+## 🤝 [Negotiation](docs/NEGOTIATION.md)
 
 Capability-based agent selection for intelligent orchestration. Query multiple agents and select the best one.
 
-**How It Works:**
-1. Orchestrator broadcasts → Multiple agents
-2. Agents self-assess → Capability scoring
-3. Orchestrator ranks → Multi-factor scoring
-4. Best agent selected → Task executed
-
-**API:**
-```bash
-POST /agent/negotiation
-```
-
-📖 **[Full Negotiation Guide →](docs/NEGOTIATION.md)** - Scoring, orchestration, examples
-
 ---
 
 <br/>
 
-## 📬 Push Notifications
+## 📬 [Push Notifications](docs/NOTIFICATIONS.md)
 
 Real-time webhook notifications for task updates. No polling required.
-
-**Quick Setup:**
-```bash
-GLOBAL_WEBHOOK_URL=https://your-server.com/webhooks
-GLOBAL_WEBHOOK_TOKEN=your_secret_token
-```
-
-**Event Types:**
-- `status-update` - Task state changes
-- `artifact-update` - Output generation
-
-📖 **[Full Notifications Guide →](docs/NOTIFICATIONS.md)** - Webhook setup, security, examples
 
 ---
 
