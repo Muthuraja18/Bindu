@@ -1,0 +1,9 @@
+Added Groq LLM support with multi-agent orchestration, planning, execution, verification and reporting pipeline.
+
+Features:
+- Groq LLM integration
+- Planner, Executor, Verifier, Reporter agents
+- Multi-agent orchestration flow
+- Example demo flow
+
+This adds a complete AI multi-agent execution framework to Bindu.
